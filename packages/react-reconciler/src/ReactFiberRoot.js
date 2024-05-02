@@ -44,29 +44,30 @@ export type RootState = {
   cache: Cache,
 };
 
+// FiberRootNode节点的构造函数
 function FiberRootNode(
   this: $FlowFixMe,
-  containerInfo: any,
+  containerInfo: any, // 容器 就是 <div Id='root' /> 的根节点
   // $FlowFixMe[missing-local-annot]
-  tag,
-  hydrate: any,
-  identifierPrefix: any,
-  onRecoverableError: any,
+  tag, // 根节点标签
+  hydrate: any, // 是否是hydrate
+  identifierPrefix: any, // 标识符前缀
+  onRecoverableError: any, // 可恢复错误
 ) {
-  this.tag = tag;
-  this.containerInfo = containerInfo;
-  this.pendingChildren = null;
-  this.current = null;
-  this.pingCache = null;
-  this.finishedWork = null;
-  this.timeoutHandle = noTimeout;
-  this.cancelPendingCommit = null;
-  this.context = null;
-  this.pendingContext = null;
-  this.next = null;
-  this.callbackNode = null;
-  this.callbackPriority = NoLane;
-  this.expirationTimes = createLaneMap(NoTimestamp);
+  this.tag = tag; // 根节点标签
+  this.containerInfo = containerInfo; // 容器
+  this.pendingChildren = null; // 待处理的子节点
+  this.current = null; // 当前的fiber树根节点
+  this.pingCache = null; // pingCache
+  this.finishedWork = null; // 已完成的work
+  this.timeoutHandle = noTimeout; // 超时处理
+  this.cancelPendingCommit = null; // 取消待处理的提交
+  this.context = null; // context
+  this.pendingContext = null; // 待处理的context
+  this.next = null; // 下一个
+  this.callbackNode = null; // 回调节点 
+  this.callbackPriority = NoLane; // 回调优先级
+  this.expirationTimes = createLaneMap(NoTimestamp); // 过期时间
 
   this.pendingLanes = NoLanes;
   this.suspendedLanes = NoLanes;
@@ -127,23 +128,25 @@ function FiberRootNode(
   }
 }
 
+// 创建FiberRoot
 export function createFiberRoot(
-  containerInfo: Container,
-  tag: RootTag,
-  hydrate: boolean,
-  initialChildren: ReactNodeList,
-  hydrationCallbacks: null | SuspenseHydrationCallbacks,
-  isStrictMode: boolean,
-  concurrentUpdatesByDefaultOverride: null | boolean,
+  containerInfo: Container, // 容器
+  tag: RootTag, // 根节点标签
+  hydrate: boolean, // 是否是hydrate
+  initialChildren: ReactNodeList, // 初始子节点
+  hydrationCallbacks: null | SuspenseHydrationCallbacks, // suspense回调
+  isStrictMode: boolean, // 是否是严格模式
+  concurrentUpdatesByDefaultOverride: null | boolean, // 是否是并发更新
   // TODO: We have several of these arguments that are conceptually part of the
   // host config, but because they are passed in at runtime, we have to thread
   // them through the root constructor. Perhaps we should put them all into a
   // single type, like a DynamicHostConfig that is defined by the renderer.
-  identifierPrefix: string,
-  onRecoverableError: null | ((error: mixed) => void),
-  transitionCallbacks: null | TransitionTracingCallbacks,
+  identifierPrefix: string, // 标识符前缀
+  onRecoverableError: null | ((error: mixed) => void), // 可恢复错误
+  transitionCallbacks: null | TransitionTracingCallbacks, // 过渡回调
 ): FiberRoot {
   // $FlowFixMe[invalid-constructor] Flow no longer supports calling new on functions
+  // 创建FiberRoot
   const root: FiberRoot = (new FiberRootNode(
     containerInfo,
     tag,
@@ -161,12 +164,15 @@ export function createFiberRoot(
 
   // Cyclic construction. This cheats the type system right now because
   // stateNode is any.
+  // 创建 host root fiber，它是Fiber树的根节点
   const uninitializedFiber = createHostRootFiber(
     tag,
     isStrictMode,
     concurrentUpdatesByDefaultOverride,
   );
+  // 将root应用根节点对象的current属性 指向了当前Current Fiber Tree组件树的根节点【HostRootFiber】
   root.current = uninitializedFiber;
+  // 然后将HostFiber.stateNode属性值：设置为root应用根节点对象
   uninitializedFiber.stateNode = root;
 
   if (enableCache) {
@@ -198,6 +204,6 @@ export function createFiberRoot(
   }
 
   initializeUpdateQueue(uninitializedFiber);
-
+  // 返回FiberRoot
   return root;
 }

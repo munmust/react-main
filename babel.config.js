@@ -24,4 +24,5 @@ module.exports = {
     ['@babel/plugin-transform-destructuring', {loose: true, useBuiltIns: true}],
     ['@babel/plugin-transform-block-scoping', {throwIfClosureRequired: true}],
   ],
+  presets: ['@babel/preset-flow'],
 };

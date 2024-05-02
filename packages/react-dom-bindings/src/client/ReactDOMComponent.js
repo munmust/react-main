@@ -999,7 +999,7 @@ function setPropOnCustomElement(
     }
   }
 }
-
+// 初始化DOM属性
 export function setInitialProperties(
   domElement: Element,
   tag: string,
@@ -1342,6 +1342,7 @@ export function setInitialProperties(
 }
 
 // Calculate the diff between the two objects.
+// 两个对象之间的差异
 export function diffProperties(
   domElement: Element,
   tag: string,
@@ -1357,6 +1358,7 @@ export function diffProperties(
   let propKey;
   let styleName;
   let styleUpdates = null;
+  // 对应props删除的情况
   for (propKey in lastProps) {
     if (
       nextProps.hasOwnProperty(propKey) ||
@@ -1385,6 +1387,7 @@ export function diffProperties(
       }
     }
   }
+  // 对应props更新或者新增的情况
   for (propKey in nextProps) {
     const nextProp = nextProps[propKey];
     const lastProp = lastProps != null ? lastProps[propKey] : undefined;
@@ -1451,7 +1454,7 @@ export function diffProperties(
     }
     (updatePayload = updatePayload || []).push('style', styleUpdates);
   }
-  return updatePayload;
+  return updatePayload; // [key, value, key, value, ...]
 }
 
 export function updateProperties(

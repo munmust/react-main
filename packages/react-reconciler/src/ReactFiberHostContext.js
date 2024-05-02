@@ -28,6 +28,7 @@ import {enableAsyncActions, enableFormActions} from 'shared/ReactFeatureFlags';
 
 const contextStackCursor: StackCursor<HostContext | null> = createCursor(null);
 const contextFiberStackCursor: StackCursor<Fiber | null> = createCursor(null);
+// 根实例的栈指针 最开始为null
 const rootInstanceStackCursor: StackCursor<Container | null> =
   createCursor(null);
 
@@ -67,10 +68,12 @@ function requiredContext<Value>(c: Value | null): Value {
   return (c: any);
 }
 
+// 得到当前根容器，就是指针的current指向
 function getCurrentRootHostContainer(): null | Container {
   return rootInstanceStackCursor.current;
 }
 
+// 获取根容器 其实就是 div#root
 function getRootHostContainer(): Container {
   const rootInstance = requiredContext(rootInstanceStackCursor.current);
   return rootInstance;
@@ -117,6 +120,7 @@ function pushHostContext(fiber: Fiber): void {
     if (stateHook !== null) {
       // Only provide context if this fiber has been upgraded by a host
       // transition. We use the same optimization for regular host context below.
+      // 惟一提供上下文的情况是，如果此fiber已由主过渡升级，则提供上下文。我们在下面的常规主机上下文中使用相同的优化。
       push(hostTransitionProviderCursor, fiber, fiber);
     }
   }

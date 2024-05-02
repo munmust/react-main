@@ -21,6 +21,7 @@ if (__DEV__) {
 
 let index = -1;
 
+// 创建一个栈指针，指向默认值
 function createCursor<T>(defaultValue: T): StackCursor<T> {
   return {
     current: defaultValue,

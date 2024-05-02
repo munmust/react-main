@@ -114,12 +114,13 @@ function noopOnRecoverableError() {
   // legacy API.
 }
 
+// 创建根节点
 function legacyCreateRootFromDOMContainer(
-  container: Container,
-  initialChildren: ReactNodeList,
-  parentComponent: ?React$Component<any, any>,
-  callback: ?Function,
-  isHydrationContainer: boolean,
+  container: Container, // 容器
+  initialChildren: ReactNodeList, // 初始子节点
+  parentComponent: ?React$Component<any, any>, // 父组件
+  callback: ?Function, // 回调
+  isHydrationContainer: boolean, // 是否是hydrate
 ): FiberRoot {
   if (isHydrationContainer) {
     if (typeof callback === 'function') {
@@ -155,16 +156,19 @@ function legacyCreateRootFromDOMContainer(
     return root;
   } else {
     // First clear any existing content.
+    // 首先清除任何现有内容
     clearContainer(container);
 
     if (typeof callback === 'function') {
-      const originalCallback = callback;
+      // 如果有回调
+      const originalCallback = callback; // 保存原始回调
       callback = function () {
-        const instance = getPublicRootInstance(root);
+        // 重新定义回调
+        const instance = getPublicRootInstance(root); // 获取根节点实例
         originalCallback.call(instance);
       };
     }
-
+    // 创建容器 也就是根节点
     const root = createContainer(
       container,
       LegacyRoot,
@@ -175,6 +179,7 @@ function legacyCreateRootFromDOMContainer(
       noopOnRecoverableError, // onRecoverableError
       null, // transitionCallbacks
     );
+    //
     container._reactRootContainer = root;
     markContainerAsRoot(root.current, container);
 
@@ -205,19 +210,20 @@ function warnOnInvalidCallback(callback: mixed, callerName: string): void {
   }
 }
 
+// 渲染子树到容器中
 function legacyRenderSubtreeIntoContainer(
-  parentComponent: ?React$Component<any, any>,
-  children: ReactNodeList,
-  container: Container,
-  forceHydrate: boolean,
-  callback: ?Function,
+  parentComponent: ?React$Component<any, any>, // 父组件
+  children: ReactNodeList, // 子节点
+  container: Container, // 容器
+  forceHydrate: boolean, // 是否是hydrate
+  callback: ?Function, // 回调
 ): React$Component<any, any> | PublicInstance | null {
   if (__DEV__) {
     topLevelUpdateWarnings(container);
     warnOnInvalidCallback(callback === undefined ? null : callback, 'render');
   }
 
-  const maybeRoot = container._reactRootContainer;
+  const maybeRoot = container._reactRootContainer; // 获取根节点
   let root: FiberRoot;
   if (!maybeRoot) {
     // Initial mount
@@ -325,7 +331,7 @@ export function render(
       'ReactDOM.render is no longer supported in React 18. Use createRoot ' +
         'instead. Until you switch to the new API, your app will behave as ' +
         "if it's running React 17. Learn " +
-        'more: https://reactjs.org/link/switch-to-createroot',
+        'more: https://reactj s.org/link/switch-to-createroot',
     );
   }
 

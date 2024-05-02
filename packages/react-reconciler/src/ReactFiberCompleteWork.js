@@ -180,6 +180,7 @@ import {suspendCommit} from './ReactFiberThenable';
 function markUpdate(workInProgress: Fiber) {
   // Tag the fiber with an update effect. This turns a Placement into
   // a PlacementAndUpdate.
+  // 给fiber打上更新标记
   workInProgress.flags |= Update;
 }
 
@@ -212,6 +213,7 @@ function hadNoMutationsEffects(current: null | Fiber, completedWork: Fiber) {
   return true;
 }
 
+// 每次执行时都会将已经创建好的dom节点挂在到当前节点下
 function appendAllChildren(
   parent: Instance,
   workInProgress: Fiber,
@@ -221,7 +223,10 @@ function appendAllChildren(
   if (supportsMutation) {
     // We only have the top Fiber that was created but we need recurse down its
     // children to find all the terminal nodes.
-    let node = workInProgress.child;
+    // 我们只有创建的顶级Fiber，但是我们需要递归遍历其子节点以找到所有的终端节点。
+    // 得到第一个子节点
+    // mount的时候，第一个元素的workInProgress.child为空，workInProgress就是需要的FiberNode
+    let node = workInProgress.child; 
     while (node !== null) {
       if (node.tag === HostComponent || node.tag === HostText) {
         appendInitialChild(parent, node.stateNode);
@@ -236,15 +241,18 @@ function appendAllChildren(
         // the portal directly.
         // If we have a HostSingleton it will be placed independently
       } else if (node.child !== null) {
+        // 如果有子节点，将子节点的return指向当前节点，然后将node指向子节点
         node.child.return = node;
         node = node.child;
         continue;
       }
       if (node === workInProgress) {
+        // 如果node等于workInProgress，说明已经遍历完了
         return;
       }
       // $FlowFixMe[incompatible-use] found when upgrading Flow
       while (node.sibling === null) {
+        // 如果没有兄弟节点，且没有父节点，说明已经遍历完了
         // $FlowFixMe[incompatible-use] found when upgrading Flow
         if (node.return === null || node.return === workInProgress) {
           return;
@@ -252,6 +260,7 @@ function appendAllChildren(
         node = node.return;
       }
       // $FlowFixMe[incompatible-use] found when upgrading Flow
+      // 将兄弟节点的return指向当前节点，然后将node指向兄弟节点
       node.sibling.return = node.return;
       node = node.sibling;
     }
@@ -414,6 +423,7 @@ function updateHostContainer(current: null | Fiber, workInProgress: Fiber) {
     }
   }
 }
+// 更新host组件
 function updateHostComponent(
   current: Fiber,
   workInProgress: Fiber,
@@ -424,7 +434,9 @@ function updateHostComponent(
   if (supportsMutation) {
     // If we have an alternate, that means this is an update and we need to
     // schedule a side-effect to do the updates.
+    // 如果有一个备用的，那么这意味着这是一个更新，我们需要安排一个副作用来执行更新。
     const oldProps = current.memoizedProps;
+    // 新旧props相同，直接返回
     if (oldProps === newProps) {
       // In mutation mode, this is sufficient for a bailout because
       // we won't touch this node even if children changed.
@@ -438,10 +450,13 @@ function updateHostComponent(
       // have newProps so we'll have to reuse them.
       // TODO: Split the update API as separate for the props vs. children.
       // Even better would be if children weren't special cased at all tho.
+      // 如果我们因为我们的一个子节点更新而更新，我们没有新的props，所以我们必须重用它们。
+      // 得到dom节点
       const instance: Instance = workInProgress.stateNode;
       // TODO: Experiencing an error where oldProps is null. Suggests a host
       // component is hitting the resume path. Figure out why. Possibly
       // related to `hidden`.
+      // 得到对应的context
       const currentHostContext = getHostContext();
       const updatePayload = prepareUpdate(
         instance,
@@ -454,6 +469,7 @@ function updateHostComponent(
       workInProgress.updateQueue = (updatePayload: any);
       // If the update payload indicates that there is a change or if there
       // is a new ref we mark this as an update. All the work is done in commitWork.
+      // 如果更新有效，标记为更新
       if (updatePayload) {
         markUpdate(workInProgress);
       }
@@ -759,7 +775,9 @@ function cutOffTailIfNeeded(
   }
 }
 
+// 只会在complete阶段调用
 function bubbleProperties(completedWork: Fiber) {
+  // 需要进行回溯的情况
   const didBailout =
     completedWork.alternate !== null &&
     completedWork.alternate.child === completedWork.child;
@@ -976,12 +994,12 @@ function completeWork(
   workInProgress: Fiber,
   renderLanes: Lanes,
 ): Fiber | null {
-  const newProps = workInProgress.pendingProps;
+  const newProps = workInProgress.pendingProps; // 得到新的props
   // Note: This intentionally doesn't check if we're hydrating because comparing
   // to the current tree provider fiber is just as fast and less error-prone.
   // Ideally we would have a special version of the work loop only
   // for hydration.
-  popTreeContext(workInProgress);
+  popTreeContext(workInProgress); // 从树中得到上下文
   switch (workInProgress.tag) {
     case IndeterminateComponent:
     case LazyComponent:
@@ -1259,8 +1277,9 @@ function completeWork(
       // Fall through
     }
     case HostComponent: {
-      popHostContext(workInProgress);
-      const type = workInProgress.type;
+      popHostContext(workInProgress); // 得到context
+      const type = workInProgress.type; // 得到workInProgress的type
+      // 更新的时候
       if (current !== null && workInProgress.stateNode != null) {
         updateHostComponent(
           current,
@@ -1304,20 +1323,25 @@ function completeWork(
             markUpdate(workInProgress);
           }
         } else {
-          const rootContainerInstance = getRootHostContainer();
+          const rootContainerInstance = getRootHostContainer(); // 得到根节点
+          // 创建对应的DOM实例
           const instance = createInstance(
-            type,
-            newProps,
-            rootContainerInstance,
-            currentHostContext,
-            workInProgress,
+            type, // type
+            newProps, // props
+            rootContainerInstance, // 根节点
+            currentHostContext, // context
+            workInProgress, // workInProgress
           );
           appendAllChildren(instance, workInProgress, false, false);
+          // fiber节点的stateNode指向对应的DOM实例
           workInProgress.stateNode = instance;
 
           // Certain renderers require commit-time effects for initial mount.
           // (eg DOM renderer supports auto-focus for certain elements).
           // Make sure such renderers get scheduled for later work.
+          // 在初始化的时候，需要执行一些副作用
+          // 比如在DOM中，有些元素需要自动聚焦
+          // 所以需要在commit阶段执行这些副作用
           if (
             finalizeInitialChildren(
               instance,
@@ -1325,6 +1349,7 @@ function completeWork(
               newProps,
               currentHostContext,
             )
+            // 如果finalizeInitialChildren返回true，说明需要在commit阶段执行自动聚焦的副作用
           ) {
             markUpdate(workInProgress);
           }

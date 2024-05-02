@@ -102,7 +102,7 @@ function ReactDOMRoot(internalRoot: FiberRoot) {
 ReactDOMHydrationRoot.prototype.render = ReactDOMRoot.prototype.render =
   // $FlowFixMe[missing-this-annot]
   function (children: ReactNodeList): void {
-    const root = this._internalRoot;
+    const root = this._internalRoot; // 根结点 
     if (root === null) {
       throw new Error('Cannot update an unmounted root.');
     }
@@ -180,22 +180,36 @@ ReactDOMHydrationRoot.prototype.unmount = ReactDOMRoot.prototype.unmount =
     }
   };
 
+// 创建根节点
+/**
+ *
+ * @param {*} container element | document | documentFragment
+ * @param {*} options 配置项
+ * @returns
+ */
 export function createRoot(
   container: Element | Document | DocumentFragment,
   options?: CreateRootOptions,
 ): RootType {
+  // 判断容器的合法性
   if (!isValidContainer(container)) {
     throw new Error('createRoot(...): Target container is not a DOM element.');
   }
-
+  // 开发环境下，警告是否使用document.body作为根节点
   warnIfReactDOMContainerInDEV(container);
 
+  // 是否是严格模式
   let isStrictMode = false;
+  // 是否默认允许并发更新
   let concurrentUpdatesByDefaultOverride = false;
+  // 标识前缀
   let identifierPrefix = '';
+  // 可恢复错误
   let onRecoverableError = defaultOnRecoverableError;
+  // 过渡回调
   let transitionCallbacks = null;
 
+  // 如果存在配置，覆盖默认配置
   if (options !== null && options !== undefined) {
     if (__DEV__) {
       if ((options: any).hydrate) {
@@ -218,26 +232,32 @@ export function createRoot(
         }
       }
     }
+    // 是否是严格模式
     if (options.unstable_strictMode === true) {
       isStrictMode = true;
     }
+    // 是否默认允许并发更新
     if (
       allowConcurrentByDefault &&
       options.unstable_concurrentUpdatesByDefault === true
     ) {
       concurrentUpdatesByDefaultOverride = true;
     }
+    // 标识前缀
     if (options.identifierPrefix !== undefined) {
       identifierPrefix = options.identifierPrefix;
     }
+    // 可恢复错误
     if (options.onRecoverableError !== undefined) {
       onRecoverableError = options.onRecoverableError;
     }
+    // 过渡回调
     if (options.unstable_transitionCallbacks !== undefined) {
       transitionCallbacks = options.unstable_transitionCallbacks;
     }
   }
 
+  // 创建根节点
   const root = createContainer(
     container,
     ConcurrentRoot,
@@ -344,15 +364,19 @@ export function hydrateRoot(
   return new ReactDOMHydrationRoot(root);
 }
 
+// 判断容器的合法性
+// 是否是元素节点、文档节点、文档片段节点、不能是禁用注释作为DOM容器、注释节点、以及节点是 react-mount-point-unstable
 export function isValidContainer(node: any): boolean {
   return !!(
-    node &&
-    (node.nodeType === ELEMENT_NODE ||
-      node.nodeType === DOCUMENT_NODE ||
-      node.nodeType === DOCUMENT_FRAGMENT_NODE ||
-      (!disableCommentsAsDOMContainers &&
-        node.nodeType === COMMENT_NODE &&
-        (node: any).nodeValue === ' react-mount-point-unstable '))
+    (
+      node && // 需要存在
+      (node.nodeType === ELEMENT_NODE || // 是元素节点
+        node.nodeType === DOCUMENT_NODE || // 是文档节点
+        node.nodeType === DOCUMENT_FRAGMENT_NODE || // 是文档片段节点
+        (!disableCommentsAsDOMContainers && // 不是禁用注释作为DOM容器
+          node.nodeType === COMMENT_NODE && // 是注释节点
+          (node: any).nodeValue === ' react-mount-point-unstable '))
+    ) // 注释节点的值是 react-mount-point-unstable
   );
 }
 

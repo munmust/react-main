@@ -194,19 +194,23 @@ const classComponentUpdater = {
   isMounted,
   // $FlowFixMe[missing-local-annot]
   enqueueSetState(inst: any, payload: any, callback) {
+     // 取出instance实例对应的FiberNode节点
     const fiber = getInstance(inst);
     const lane = requestUpdateLane(fiber);
-
+    // 创建一个更新
     const update = createUpdate(lane);
+    // 确定更新内容
     update.payload = payload;
     if (callback !== undefined && callback !== null) {
       if (__DEV__) {
         warnOnInvalidCallback(callback, 'setState');
       }
+      // 设置回调函数
       update.callback = callback;
     }
-
+    // 将update更新对象添加到更新队列，并返回应用的root根节点
     const root = enqueueUpdate(fiber, update, lane);
+    // 开启一个从root根节点开始的更新调度
     if (root !== null) {
       scheduleUpdateOnFiber(root, fiber, lane);
       entangleTransitions(root, fiber, lane);
@@ -642,7 +646,7 @@ function constructClassInstance(
       ? getMaskedContext(workInProgress, unmaskedContext)
       : emptyContextObject;
   }
-
+  // 直接new 一个实例出来
   let instance = new ctor(props, context);
   // Instantiate twice to help detect side-effects.
   if (__DEV__) {
@@ -659,10 +663,12 @@ function constructClassInstance(
     }
   }
 
+  // 得到state，也设置memoizedState
   const state = (workInProgress.memoizedState =
     instance.state !== null && instance.state !== undefined
       ? instance.state
       : null);
+  //
   adoptClassInstance(workInProgress, instance);
 
   if (__DEV__) {
@@ -753,7 +759,7 @@ function constructClassInstance(
   if (isLegacyContextConsumer) {
     cacheContext(workInProgress, unmaskedContext, context);
   }
-
+  // 返回执行过构造函数的实例
   return instance;
 }
 
@@ -822,12 +828,16 @@ function mountClassInstance(
   if (__DEV__) {
     checkClassInstance(workInProgress, ctor, newProps);
   }
-
+  // 得到实例
   const instance = workInProgress.stateNode;
+  // props
   instance.props = newProps;
+  // state
   instance.state = workInProgress.memoizedState;
+  // ref
   instance.refs = {};
 
+  // 设置更新队列对象：fiber.updateQueue = queue;
   initializeUpdateQueue(workInProgress);
 
   const contextType = ctor.contextType;
@@ -867,8 +877,10 @@ function mountClassInstance(
     );
   }
 
+  // 同步组件实例的state数据
   instance.state = workInProgress.memoizedState;
 
+  // 调用getDerivedStateFromProps钩子函数
   const getDerivedStateFromProps = ctor.getDerivedStateFromProps;
   if (typeof getDerivedStateFromProps === 'function') {
     applyDerivedStateFromProps(
@@ -877,24 +889,28 @@ function mountClassInstance(
       getDerivedStateFromProps,
       newProps,
     );
+    // 更新state
     instance.state = workInProgress.memoizedState;
   }
 
   // In order to support react-lifecycles-compat polyfilled components,
   // Unsafe lifecycles should not be invoked for components using the new APIs.
+  // 老勾子给警告
   if (
     typeof ctor.getDerivedStateFromProps !== 'function' &&
     typeof instance.getSnapshotBeforeUpdate !== 'function' &&
     (typeof instance.UNSAFE_componentWillMount === 'function' ||
       typeof instance.componentWillMount === 'function')
   ) {
+    // 执行componentWillMount生命周期钩子函数
     callComponentWillMount(workInProgress, instance);
     // If we had additional state updates during this life-cycle, let's
     // process them now.
+    // 如果在这个生命周期中有额外的状态更新，我们现在就处理它们。
     processUpdateQueue(workInProgress, newProps, instance, renderLanes);
     instance.state = workInProgress.memoizedState;
   }
-
+  // 设置了class组件的componentDidMount生命周期钩子函数，则需要在组件的FiberNode上设置对应的flags
   if (typeof instance.componentDidMount === 'function') {
     workInProgress.flags |= Update | LayoutStatic;
   }
@@ -1108,6 +1124,7 @@ function updateClassInstance(
 
   const oldState = workInProgress.memoizedState;
   let newState = (instance.state = oldState);
+  // state更新
   processUpdateQueue(workInProgress, newProps, instance, renderLanes);
   newState = workInProgress.memoizedState;
 
@@ -1144,6 +1161,7 @@ function updateClassInstance(
     return false;
   }
 
+  // 调用getDerivedStateFromProps钩子函数
   if (typeof getDerivedStateFromProps === 'function') {
     applyDerivedStateFromProps(
       workInProgress,
@@ -1153,7 +1171,7 @@ function updateClassInstance(
     );
     newState = workInProgress.memoizedState;
   }
-
+  // shouldComponentUpdate钩子函数
   const shouldUpdate =
     checkHasForceUpdateAfterProcessing() ||
     checkShouldComponentUpdate(
@@ -1183,6 +1201,7 @@ function updateClassInstance(
         typeof instance.componentWillUpdate === 'function')
     ) {
       if (typeof instance.componentWillUpdate === 'function') {
+        // 调用componentWillUpdate生命周期钩子函数
         instance.componentWillUpdate(newProps, newState, nextContext);
       }
       if (typeof instance.UNSAFE_componentWillUpdate === 'function') {
@@ -1190,14 +1209,17 @@ function updateClassInstance(
       }
     }
     if (typeof instance.componentDidUpdate === 'function') {
+      // componentDidUpdate生命周期钩子函数
       workInProgress.flags |= Update;
     }
     if (typeof instance.getSnapshotBeforeUpdate === 'function') {
+      // getSnapshotBeforeUpdate生命周期钩子函数
       workInProgress.flags |= Snapshot;
     }
   } else {
     // If an update was already in progress, we should schedule an Update
     // effect even though we're bailing out, so that cWU/cDU are called.
+    // 如果已经有更新在进行中，我们应该调度一个更新效果，即使我们正在退出，以便调用cWU/cDU。
     if (typeof instance.componentDidUpdate === 'function') {
       if (
         unresolvedOldProps !== current.memoizedProps ||
@@ -1206,6 +1228,7 @@ function updateClassInstance(
         workInProgress.flags |= Update;
       }
     }
+    // getSnapshotBeforeUpdate生命周期钩子函数
     if (typeof instance.getSnapshotBeforeUpdate === 'function') {
       if (
         unresolvedOldProps !== current.memoizedProps ||
@@ -1217,6 +1240,7 @@ function updateClassInstance(
 
     // If shouldComponentUpdate returned false, we should still update the
     // memoized props/state to indicate that this work can be reused.
+    // 得到memoizedProps和memoizedState
     workInProgress.memoizedProps = newProps;
     workInProgress.memoizedState = newState;
   }

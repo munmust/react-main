@@ -580,7 +580,14 @@ export function createLaneMap<T>(initial: T): LaneMap<T> {
   return laneMap;
 }
 
+/**
+ * 将本次更新的优先级updateLane，附加到root应用根节点上的pendingLanes属性，标记其有正在等待更新的任务。
+ * 此时挂载的优先级将会后在后续被转换为调度优先级，方便调度程序的使用
+ * @param {*} root 根节点
+ * @param {*} updateLane 更新优先级
+ */
 export function markRootUpdated(root: FiberRoot, updateLane: Lane) {
+  // 设置本次更新的优先级
   root.pendingLanes |= updateLane;
 
   // If there are any suspended transitions, it's possible this new update
@@ -595,7 +602,9 @@ export function markRootUpdated(root: FiberRoot, updateLane: Lane) {
   // We don't do this if the incoming update is idle, because we never process
   // idle updates until after all the regular updates have finished; there's no
   // way it could unblock a transition.
+  // 如果updateLane优先级不是为空闲级的优先级【不是低优先级】
   if (updateLane !== IdleLane) {
+    // 则重置root应用根节点的优先级
     root.suspendedLanes = NoLanes;
     root.pingedLanes = NoLanes;
   }

@@ -97,9 +97,11 @@ export type Fiber = {
   elementType: any,
 
   // The resolved function/class/ associated with this fiber.
+  // 解析后的函数/类/与此fiber相关联。
   type: any,
 
   // The local state associated with this fiber.
+  // 与此fiber相关联的本地状态。
   stateNode: any,
 
   // Conceptual aliases

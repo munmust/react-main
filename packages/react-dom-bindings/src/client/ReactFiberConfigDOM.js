@@ -318,9 +318,10 @@ export function getPublicInstance(instance: Instance): Instance {
   return instance;
 }
 
+// commit阶段的准备，得到是否有focus的元素
 export function prepareForCommit(containerInfo: Container): Object | null {
-  eventsEnabled = ReactBrowserEventEmitterIsEnabled();
-  selectionInformation = getSelectionInformation();
+  eventsEnabled = ReactBrowserEventEmitterIsEnabled(); // 得到事件是否启用
+  selectionInformation = getSelectionInformation(); // 得到selection信息
   let activeInstance = null;
   if (enableCreateEventHandleAPI) {
     const focusedElem = selectionInformation.focusedElem;
@@ -390,6 +391,7 @@ const warnedUnknownTags: {
   webview: true,
 };
 
+// 创建DOM实例
 export function createInstance(
   type: string,
   props: Props,
@@ -406,7 +408,7 @@ export function createInstance(
   } else {
     hostContextProd = (hostContext: any);
   }
-
+  // 通过根节点容器得到Document
   const ownerDocument = getOwnerDocumentFromRootContainer(
     rootContainerInstance,
   );
@@ -477,6 +479,8 @@ export function createInstance(
             // Separate else branch instead of using `props.is || undefined` above because of a Firefox bug.
             // See discussion in https://github.com/facebook/react/pull/6896
             // and discussion in https://bugzilla.mozilla.org/show_bug.cgi?id=1276240
+            // 创建一个元素
+
             domElement = ownerDocument.createElement(type);
           }
 
@@ -512,10 +516,12 @@ export function createInstance(
       }
   }
   precacheFiberNode(internalInstanceHandle, domElement);
-  updateFiberProps(domElement, props);
+  // 更新新建的Dom元素的属性
+  updateFiberProps(domElement, props); 
   return domElement;
 }
 
+// 将子节点插入到父节点中
 export function appendInitialChild(
   parentInstance: Instance,
   child: Instance | TextInstance,
@@ -523,6 +529,7 @@ export function appendInitialChild(
   parentInstance.appendChild(child);
 }
 
+// 初始化生成的DOM节点，返回是否需要聚焦
 export function finalizeInitialChildren(
   domElement: Instance,
   type: string,
@@ -543,6 +550,7 @@ export function finalizeInitialChildren(
   }
 }
 
+// 更新分析
 export function prepareUpdate(
   domElement: Instance,
   type: string,
@@ -739,7 +747,7 @@ export function commitTextUpdate(
 ): void {
   textInstance.nodeValue = newText;
 }
-
+// 父节点插入
 export function appendChild(
   parentInstance: Instance,
   child: Instance | TextInstance,
@@ -785,12 +793,14 @@ export function insertBefore(
   parentInstance.insertBefore(child, beforeChild);
 }
 
+// dom节点插入到container中
 export function insertInContainerBefore(
   container: Container,
   child: Instance | TextInstance,
   beforeChild: Instance | TextInstance | SuspenseInstance,
 ): void {
   if (container.nodeType === COMMENT_NODE) {
+    // 
     (container.parentNode: any).insertBefore(child, beforeChild);
   } else {
     container.insertBefore(child, beforeChild);

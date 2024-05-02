@@ -13,6 +13,7 @@ import {checkKeyStringCoercion} from 'shared/CheckStringCoercion';
 
 import ReactCurrentOwner from './ReactCurrentOwner';
 
+// 保留关键字属性
 const RESERVED_PROPS = {
   key: true,
   ref: true,
@@ -145,18 +146,25 @@ function warnIfStringRefCannotBeAutoConverted(config) {
  * indicating filename, line number, and/or other information.
  * @internal
  */
+// 创建新 React 元素的工厂方法。这不再遵守类模式，所以不要使用 new 来调用它。另外，instanceof 检查不管用。
+// 相反，根据 Symbol.for('react.element') 测试 $$typeof 字段来检查如果某物是 React 元素。
+// owner 和 self 是临时的辅助函数，用于检测调用 React.createElement 时 this 和 owner 不同的地方，以便我们可以发出警告。
+// 我们想要摆脱 owner 并用箭头函数替换字符串 ref，只要 this 和 owner 相同，行为就不会改变。
 function ReactElement(type, key, ref, self, source, owner, props) {
   const element = {
     // This tag allows us to uniquely identify this as a React Element
-    $$typeof: REACT_ELEMENT_TYPE,
+    // 标识为 React 元素
+    $$typeof: REACT_ELEMENT_TYPE, // Symbol.for('react.element')
 
     // Built-in properties that belong on the element
+    // 内置属性属于元素
     type: type,
     key: key,
     ref: ref,
     props: props,
 
     // Record the component responsible for creating this element.
+    // 记录创建此元素的组件。
     _owner: owner,
   };
 
@@ -211,6 +219,7 @@ export function jsx(type, config, maybeKey) {
   let propName;
 
   // Reserved names are extracted
+  // 保留关键字属性
   const props = {};
 
   let key = null;
@@ -233,14 +242,16 @@ export function jsx(type, config, maybeKey) {
     if (__DEV__) {
       checkKeyStringCoercion(config.key);
     }
+    // key 属性字符串类型
     key = '' + config.key;
   }
-
+  // ref 属性
   if (hasValidRef(config)) {
     ref = config.ref;
   }
 
   // Remaining properties are added to a new props object
+  // 剩余属性添加到新的 props 对象
   for (propName in config) {
     if (
       hasOwnProperty.call(config, propName) &&
@@ -251,6 +262,7 @@ export function jsx(type, config, maybeKey) {
   }
 
   // Resolve default props
+  // 解析默认 props
   if (type && type.defaultProps) {
     const defaultProps = type.defaultProps;
     for (propName in defaultProps) {
@@ -359,35 +371,43 @@ export function jsxDEV(type, config, maybeKey, source, self) {
  * Create and return a new ReactElement of the given type.
  * See https://reactjs.org/docs/react-api.html#createelement
  */
+// 根据给定type类型创建新的ReactElement type可以是div，span等hostComponent或者类组件，函数组件等
 export function createElement(type, config, children) {
   let propName;
 
   // Reserved names are extracted
+  // 保留关键字属性
   const props = {};
 
   let key = null;
   let ref = null;
   let self = null;
   let source = null;
-
+  //
   if (config != null) {
+    // 有 ref 属性
     if (hasValidRef(config)) {
+      // ref 属性
       ref = config.ref;
 
       if (__DEV__) {
         warnIfStringRefCannotBeAutoConverted(config);
       }
     }
+    // 有 key 属性
     if (hasValidKey(config)) {
       if (__DEV__) {
         checkKeyStringCoercion(config.key);
       }
+      // key 属性字符串类型
       key = '' + config.key;
     }
-
+    // self 属性
     self = config.__self === undefined ? null : config.__self;
+    // source 属性
     source = config.__source === undefined ? null : config.__source;
     // Remaining properties are added to a new props object
+    // 剩余属性添加到新的 props 对象
     for (propName in config) {
       if (
         hasOwnProperty.call(config, propName) &&
@@ -400,10 +420,13 @@ export function createElement(type, config, children) {
 
   // Children can be more than one argument, and those are transferred onto
   // the newly allocated props object.
+  // 子元素可以是多个参数，并且这些参数被传递到新分配的 props 对象上。
   const childrenLength = arguments.length - 2;
+  // 只有一个子元素
   if (childrenLength === 1) {
     props.children = children;
   } else if (childrenLength > 1) {
+    // 多个子元素
     const childArray = Array(childrenLength);
     for (let i = 0; i < childrenLength; i++) {
       childArray[i] = arguments[i + 2];
@@ -417,8 +440,10 @@ export function createElement(type, config, children) {
   }
 
   // Resolve default props
+  // 解析默认 props
   if (type && type.defaultProps) {
     const defaultProps = type.defaultProps;
+    // 将defaultProps上的属性添加到props上
     for (propName in defaultProps) {
       if (props[propName] === undefined) {
         props[propName] = defaultProps[propName];
@@ -439,6 +464,7 @@ export function createElement(type, config, children) {
       }
     }
   }
+  //
   return ReactElement(
     type,
     key,
@@ -465,6 +491,7 @@ export function createFactory(type) {
   return factory;
 }
 
+// 克隆并返回一个新的 ReactElement，使用 element 作为起点。
 export function cloneAndReplaceKey(oldElement, newKey) {
   const newElement = ReactElement(
     oldElement.type,
@@ -493,6 +520,7 @@ export function cloneElement(element, config, children) {
   let propName;
 
   // Original props are copied
+  // 原始 props 被复制
   const props = assign({}, element.props);
 
   // Reserved names are extracted
@@ -507,7 +535,7 @@ export function cloneElement(element, config, children) {
 
   // Owner will be preserved, unless ref is overridden
   let owner = element._owner;
-
+  // props根据config的更改
   if (config != null) {
     if (hasValidRef(config)) {
       // Silently steal the ref from the parent.
@@ -543,6 +571,7 @@ export function cloneElement(element, config, children) {
 
   // Children can be more than one argument, and those are transferred onto
   // the newly allocated props object.
+  // children的更改
   const childrenLength = arguments.length - 2;
   if (childrenLength === 1) {
     props.children = children;
@@ -553,7 +582,7 @@ export function cloneElement(element, config, children) {
     }
     props.children = childArray;
   }
-
+  //
   return ReactElement(element.type, key, ref, self, source, owner, props);
 }
 
@@ -564,6 +593,8 @@ export function cloneElement(element, config, children) {
  * @return {boolean} True if `object` is a ReactElement.
  * @final
  */
+// 通过REACT_ELEMENT_TYPE标签判断是不是一个ReactElement
+// 得是一个对象，不能是null，$$typeof属性是REACT_ELEMENT_TYPE
 export function isValidElement(object) {
   return (
     typeof object === 'object' &&
@@ -571,3 +602,7 @@ export function isValidElement(object) {
     object.$$typeof === REACT_ELEMENT_TYPE
   );
 }
+
+/**
+ * component(class Component\function Component)会作为createElement的第一个参数，返回一个函数，这个函数会返回一个ReactElement
+ */

@@ -94,11 +94,13 @@ function enqueueUpdate(
 ) {
   // Don't update the `childLanes` on the return path yet. If we already in
   // the middle of rendering, wait until after it has completed.
+  // 不会立即更新return路径上的childLanes。如果我们已经在渲染过程中，等到渲染完成后再更新。
   concurrentQueues[concurrentQueuesIndex++] = fiber;
   concurrentQueues[concurrentQueuesIndex++] = queue;
   concurrentQueues[concurrentQueuesIndex++] = update;
   concurrentQueues[concurrentQueuesIndex++] = lane;
 
+  // 合并lanes
   concurrentlyUpdatedLanes = mergeLanes(concurrentlyUpdatedLanes, lane);
 
   // The fiber's `lane` field is used in some places to check if any work is

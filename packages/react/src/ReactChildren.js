@@ -28,6 +28,7 @@ const SUBSEPARATOR = ':';
  * @param {string} key to be escaped.
  * @return {string} the escaped key.
  */
+// 转义key，使其安全使用
 function escape(key: string): string {
   const escapeRegex = /[=:]/g;
   const escaperLookup = {
@@ -60,6 +61,7 @@ function escapeUserProvidedKey(text: string): string {
  * @param {number} index Index that is used if a manual key is not provided.
  * @return {string}
  */
+// 生成标识元素的key
 function getElementKey(element: any, index: number): string {
   // Do some typechecking here since we call this blindly. We want to ensure
   // that we don't block potential future ES APIs.
@@ -74,6 +76,7 @@ function getElementKey(element: any, index: number): string {
   return index.toString(36);
 }
 
+// 递归遍历children，将children中的元素放入array中
 function mapIntoArray(
   children: ?ReactNodeList,
   array: Array<React$Node>,
@@ -83,11 +86,13 @@ function mapIntoArray(
 ): number {
   const type = typeof children;
 
+  // 为null或undefined时，返回空
   if (type === 'undefined' || type === 'boolean') {
     // All of the above are perceived as null.
     children = null;
   }
 
+  // 判断是否需要调用回调函数来映射React元素
   let invokeCallback = false;
 
   if (children === null) {
@@ -112,8 +117,10 @@ function mapIntoArray(
     let mappedChild = callback(child);
     // If it's the only child, treat the name as if it was wrapped in an array
     // so that it's consistent if the number of children grows:
+    // 如果是唯一的子元素，则将其视为包装在数组中的名称，以便在子元素数量增加时保持一致：
     const childKey =
       nameSoFar === '' ? SEPARATOR + getElementKey(child, 0) : nameSoFar;
+      // 如果回调函数返回的是数组，则递归遍历数组
     if (isArray(mappedChild)) {
       let escapedChildKey = '';
       if (childKey != null) {
@@ -121,6 +128,7 @@ function mapIntoArray(
       }
       mapIntoArray(mappedChild, array, escapedChildKey, '', c => c);
     } else if (mappedChild != null) {
+      // 如果回调函数返回的是React元素，则将其放入array中
       if (isValidElement(mappedChild)) {
         if (__DEV__) {
           // The `if` statement here prevents auto-disabling of the safe
@@ -130,6 +138,7 @@ function mapIntoArray(
             checkKeyStringCoercion(mappedChild.key);
           }
         }
+        // 克隆并替换key
         mappedChild = cloneAndReplaceKey(
           mappedChild,
           // Keep both the (mapped) and old keys if they differ, just as
@@ -152,14 +161,17 @@ function mapIntoArray(
 
   let child;
   let nextName;
+  // 兄弟树的数量
   let subtreeCount = 0; // Count of children found in the current subtree.
+  // 递归遍历children
   const nextNamePrefix =
     nameSoFar === '' ? SEPARATOR : nameSoFar + SUBSEPARATOR;
-
+  // 如果children是数组，则遍历数组
   if (isArray(children)) {
     for (let i = 0; i < children.length; i++) {
       child = children[i];
       nextName = nextNamePrefix + getElementKey(child, i);
+      // 递归遍历子树
       subtreeCount += mapIntoArray(
         child,
         array,

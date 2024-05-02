@@ -12,9 +12,9 @@
 // Please consider also adding to 'react-devtools-shared/src/backend/ReactSymbols'
 
 // The Symbol used to tag the ReactElement-like types.
-export const REACT_ELEMENT_TYPE: symbol = Symbol.for('react.element');
-export const REACT_PORTAL_TYPE: symbol = Symbol.for('react.portal');
-export const REACT_FRAGMENT_TYPE: symbol = Symbol.for('react.fragment');
+export const REACT_ELEMENT_TYPE: symbol = Symbol.for('react.element'); // 是否是ReactElement
+export const REACT_PORTAL_TYPE: symbol = Symbol.for('react.portal'); // 是否是ReactPortal
+export const REACT_FRAGMENT_TYPE: symbol = Symbol.for('react.fragment'); // 是否是ReactFragment
 export const REACT_STRICT_MODE_TYPE: symbol = Symbol.for('react.strict_mode');
 export const REACT_PROFILER_TYPE: symbol = Symbol.for('react.profiler');
 export const REACT_PROVIDER_TYPE: symbol = Symbol.for('react.provider');

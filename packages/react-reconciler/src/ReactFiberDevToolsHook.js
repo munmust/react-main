@@ -323,7 +323,7 @@ export function markComponentPassiveEffectMountStopped(): void {
     }
   }
 }
-
+// 标记组件被挂载的副作用函数已经卸载的开始
 export function markComponentPassiveEffectUnmountStarted(fiber: Fiber): void {
   if (enableSchedulingProfiler) {
     if (
@@ -336,6 +336,7 @@ export function markComponentPassiveEffectUnmountStarted(fiber: Fiber): void {
   }
 }
 
+// 标记组件被挂载的副作用函数已经卸载的结束
 export function markComponentPassiveEffectUnmountStopped(): void {
   if (enableSchedulingProfiler) {
     if (

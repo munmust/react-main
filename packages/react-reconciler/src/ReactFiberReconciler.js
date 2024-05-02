@@ -242,15 +242,16 @@ function findHostInstanceWithWarning(
   return findHostInstance(component);
 }
 
+// 创建容器
 export function createContainer(
-  containerInfo: Container,
-  tag: RootTag,
-  hydrationCallbacks: null | SuspenseHydrationCallbacks,
-  isStrictMode: boolean,
-  concurrentUpdatesByDefaultOverride: null | boolean,
-  identifierPrefix: string,
-  onRecoverableError: (error: mixed) => void,
-  transitionCallbacks: null | TransitionTracingCallbacks,
+  containerInfo: Container, // 容器
+  tag: RootTag, // 内容标签 根结点会是3
+  hydrationCallbacks: null | SuspenseHydrationCallbacks, // 水合回调
+  isStrictMode: boolean, // 是否是严格模式
+  concurrentUpdatesByDefaultOverride: null | boolean, // 并发更新默认覆盖
+  identifierPrefix: string, // 标识符前缀
+  onRecoverableError: (error: mixed) => void, // 可恢复错误
+  transitionCallbacks: null | TransitionTracingCallbacks, // 过渡回调
 ): OpaqueRoot {
   const hydrate = false;
   const initialChildren = null;
@@ -315,22 +316,26 @@ export function createHydrationContainer(
   return root;
 }
 
+// 更新容器
 export function updateContainer(
-  element: ReactNodeList,
-  container: OpaqueRoot,
-  parentComponent: ?React$Component<any, any>,
+  element: ReactNodeList, // 元素
+  container: OpaqueRoot, // 容器
+  parentComponent: ?React$Component<any, any>, // 父组件
   callback: ?Function,
 ): Lane {
   if (__DEV__) {
     onScheduleRoot(container, element);
   }
+  // 1. 获取当前时间戳, 计算本次更新的优先级
+  // 取出current对象,为HostFiber
   const current = container.current;
+  // 取出current对象,为HostFiber
   const lane = requestUpdateLane(current);
 
   if (enableSchedulingProfiler) {
     markRenderScheduled(lane);
   }
-
+  // 获取父组件的上下文,因为parentComponent为null,所以这里context为空对象
   const context = getContextForSubtree(parentComponent);
   if (container.context === null) {
     container.context = context;
@@ -354,10 +359,11 @@ export function updateContainer(
       );
     }
   }
-
+  // 创建一个update更新对象
   const update = createUpdate(lane);
   // Caution: React DevTools currently depends on this property
   // being called "element".
+  // 将更新对象的 payload 属性设置为App根组件的内容
   update.payload = {element};
 
   callback = callback === undefined ? null : callback;
@@ -373,9 +379,11 @@ export function updateContainer(
     }
     update.callback = callback;
   }
-
+  // 2. 设置fiber.updateQueue
+  // 将更新对象update：添加到当前current对象的更新队列中
   const root = enqueueUpdate(current, update, lane);
   if (root !== null) {
+    // 3. 进入reconciler运作流程中的`输入`环节
     scheduleUpdateOnFiber(root, current, lane);
     entangleTransitions(root, current, lane);
   }
